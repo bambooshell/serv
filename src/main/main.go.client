@@ -1,0 +1,48 @@
+package main
+
+import (
+	"config"
+	"fmt"
+	"log"
+	"msg"
+	"net"
+	"protoes"
+)
+
+import proto "code.google.com/p/goprotobuf/proto"
+
+func main() {
+	// register functions of creating message protocol
+	protoes.RegisterProtoFuncs()
+
+	conn, err := net.Dial("tcp", fmt.Sprintf("localhost:%d", config.Gport))
+	if err != nil {
+		log.Fatal("net.Dial() failed!")
+	}
+	defer conn.Close()
+
+	TestSend(conn)
+	TestSend(conn)
+	TestSend(conn)
+}
+
+func TestSend(conn net.Conn) {
+	fmt.Println("send..")
+	pb := protoes.C2S_CREATE_ACC.CreateProto()
+
+	newPb := pb.(*protoes.CreateAcc)
+	newPb.AccName = proto.String("haha")
+	newPb.RoleName = proto.String("evanchen")
+
+	_msg := msg.NewMsg(0, protoes.C2S_CREATE_ACC)
+	_msg.Pb = newPb
+
+	msg.HandleSend(conn, _msg)
+
+	retMsg, err := msg.HandleRecv(conn)
+	if err != nil {
+		fmt.Println(err.Error())
+	} else {
+		fmt.Println(retMsg)
+	}
+}

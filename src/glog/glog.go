@@ -79,7 +79,8 @@ func NewLogger(fname string, lv int) (l *Logger) {
 		logger: ll,
 		fd:     f,
 		fsize:  0,
-		loglv:  lv}
+		loglv:  lv,
+	}
 
 	l.ch = make(chan string, 2048)
 

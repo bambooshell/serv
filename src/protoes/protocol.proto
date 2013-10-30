@@ -1,0 +1,22 @@
+package protoes;
+
+message createAcc {
+	required string accName = 1;
+	required string roleName = 2;
+}
+
+message createAccRet {
+	required int32	ok = 1;
+	required uint32 accId = 2;
+	required string roleName = 3;
+}
+
+message accLogin {
+	required string accName = 1;
+}
+
+message accLoginRet {
+	required uint32 accId = 1;
+	required uint32 lv = 2;
+	required string roleName = 3;
+}
