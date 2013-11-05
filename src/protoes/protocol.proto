@@ -7,8 +7,6 @@ message createAcc {
 
 message createAccRet {
 	required int32	ok = 1;
-	required uint32 accId = 2;
-	required string roleName = 3;
 }
 
 message accLogin {
@@ -16,7 +14,12 @@ message accLogin {
 }
 
 message accLoginRet {
+	required uint32 ok = 1;
+}
+
+message accLoinInfo {
 	required uint32 accId = 1;
 	required uint32 lv = 2;
-	required string roleName = 3;
+	required string accName = 3;
+	required string roleName = 4;
 }

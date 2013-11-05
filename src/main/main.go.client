@@ -21,28 +21,71 @@ func main() {
 	}
 	defer conn.Close()
 
-	TestSend(conn)
-	TestSend(conn)
-	TestSend(conn)
+	TestLogin(conn)
 }
 
-func TestSend(conn net.Conn) {
-	fmt.Println("send..")
-	pb := protoes.C2S_CREATE_ACC.CreateProto()
+func TestLogin(conn net.Conn) {
+	fmt.Println("TestLogin..")
+	pb := protoes.C2S_LOGIN.CreateProto()
 
-	newPb := pb.(*protoes.CreateAcc)
-	newPb.AccName = proto.String("haha")
-	newPb.RoleName = proto.String("evanchen")
+	newPb := pb.(*protoes.AccLogin)
+	newPb.AccName = proto.String("bambooshell")
 
-	_msg := msg.NewMsg(0, protoes.C2S_CREATE_ACC)
+	_msg := msg.NewMsg(0, protoes.C2S_LOGIN)
 	_msg.Pb = newPb
 
 	msg.HandleSend(conn, _msg)
 
 	retMsg, err := msg.HandleRecv(conn)
+
+	testHandleRetMsg(conn, retMsg, err)
+}
+
+func testHandleRetMsg(conn net.Conn, retMsg *msg.Msg, err error) {
+
 	if err != nil {
 		fmt.Println(err.Error())
 	} else {
-		fmt.Println(retMsg)
+		switch retMsg.Op {
+		case protoes.S2C_LOGIN:
+			testRetLogin(conn, retMsg)
+		case protoes.S2C_CREATE_ACC:
+			testRetCreate(retMsg)
+		case protoes.S2C_ACC_INFO:
+			testRetAccInfo(retMsg)
+		}
 	}
+}
+
+func testRetLogin(conn net.Conn, _msg *msg.Msg) {
+	retPb := _msg.Pb.(*protoes.AccLoginRet)
+	if *retPb.Ok == 1 { //create
+		pb := protoes.C2S_CREATE_ACC.CreateProto()
+
+		newPb := pb.(*protoes.CreateAcc)
+		newPb.AccName = proto.String("bambooshell")
+		newPb.RoleName = proto.String("evanchen")
+
+		_msg2 := msg.NewMsg(0, protoes.C2S_CREATE_ACC)
+		_msg2.Pb = newPb
+
+		fmt.Printf("send create..%v\n", _msg2)
+		msg.HandleSend(conn, _msg2)
+
+		retMsg, err := msg.HandleRecv(conn)
+		if retMsg.Op == protoes.S2C_LOGIN {
+			panic("error")
+		}
+		testHandleRetMsg(conn, retMsg, err)
+	} else{
+		fmt.Println(_msg)
+	}
+}
+
+func testRetCreate(_msg *msg.Msg) {
+	fmt.Println("create failed")
+}
+
+func testRetAccInfo(_msg *msg.Msg) {
+	fmt.Println("account info: %v", _msg)
 }

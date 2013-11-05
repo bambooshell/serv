@@ -38,10 +38,8 @@ func (m *CreateAcc) GetRoleName() string {
 }
 
 type CreateAccRet struct {
-	Ok               *int32  `protobuf:"varint,1,req,name=ok" json:"ok,omitempty"`
-	AccId            *uint32 `protobuf:"varint,2,req,name=accId" json:"accId,omitempty"`
-	RoleName         *string `protobuf:"bytes,3,req,name=roleName" json:"roleName,omitempty"`
-	XXX_unrecognized []byte  `json:"-"`
+	Ok               *int32 `protobuf:"varint,1,req,name=ok" json:"ok,omitempty"`
+	XXX_unrecognized []byte `json:"-"`
 }
 
 func (m *CreateAccRet) Reset()         { *m = CreateAccRet{} }
@@ -53,20 +51,6 @@ func (m *CreateAccRet) GetOk() int32 {
 		return *m.Ok
 	}
 	return 0
-}
-
-func (m *CreateAccRet) GetAccId() uint32 {
-	if m != nil && m.AccId != nil {
-		return *m.AccId
-	}
-	return 0
-}
-
-func (m *CreateAccRet) GetRoleName() string {
-	if m != nil && m.RoleName != nil {
-		return *m.RoleName
-	}
-	return ""
 }
 
 type AccLogin struct {
@@ -86,9 +70,7 @@ func (m *AccLogin) GetAccName() string {
 }
 
 type AccLoginRet struct {
-	AccId            *uint32 `protobuf:"varint,1,req,name=accId" json:"accId,omitempty"`
-	Lv               *uint32 `protobuf:"varint,2,req,name=lv" json:"lv,omitempty"`
-	RoleName         *string `protobuf:"bytes,3,req,name=roleName" json:"roleName,omitempty"`
+	Ok               *uint32 `protobuf:"varint,1,req,name=ok" json:"ok,omitempty"`
 	XXX_unrecognized []byte  `json:"-"`
 }
 
@@ -96,21 +78,47 @@ func (m *AccLoginRet) Reset()         { *m = AccLoginRet{} }
 func (m *AccLoginRet) String() string { return proto.CompactTextString(m) }
 func (*AccLoginRet) ProtoMessage()    {}
 
-func (m *AccLoginRet) GetAccId() uint32 {
+func (m *AccLoginRet) GetOk() uint32 {
+	if m != nil && m.Ok != nil {
+		return *m.Ok
+	}
+	return 0
+}
+
+type AccLoinInfo struct {
+	AccId            *uint32 `protobuf:"varint,1,req,name=accId" json:"accId,omitempty"`
+	Lv               *uint32 `protobuf:"varint,2,req,name=lv" json:"lv,omitempty"`
+	AccName          *string `protobuf:"bytes,3,req,name=accName" json:"accName,omitempty"`
+	RoleName         *string `protobuf:"bytes,4,req,name=roleName" json:"roleName,omitempty"`
+	XXX_unrecognized []byte  `json:"-"`
+}
+
+func (m *AccLoinInfo) Reset()         { *m = AccLoinInfo{} }
+func (m *AccLoinInfo) String() string { return proto.CompactTextString(m) }
+func (*AccLoinInfo) ProtoMessage()    {}
+
+func (m *AccLoinInfo) GetAccId() uint32 {
 	if m != nil && m.AccId != nil {
 		return *m.AccId
 	}
 	return 0
 }
 
-func (m *AccLoginRet) GetLv() uint32 {
+func (m *AccLoinInfo) GetLv() uint32 {
 	if m != nil && m.Lv != nil {
 		return *m.Lv
 	}
 	return 0
 }
 
-func (m *AccLoginRet) GetRoleName() string {
+func (m *AccLoinInfo) GetAccName() string {
+	if m != nil && m.AccName != nil {
+		return *m.AccName
+	}
+	return ""
+}
+
+func (m *AccLoinInfo) GetRoleName() string {
 	if m != nil && m.RoleName != nil {
 		return *m.RoleName
 	}

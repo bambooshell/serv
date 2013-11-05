@@ -7,6 +7,7 @@ import (
 	"logMgr"
 	"msg"
 	"net"
+	"time"
 )
 
 type Conn struct {
@@ -14,8 +15,6 @@ type Conn struct {
 	acc      *account.Acc //need to know who to handle msg
 	readch   chan *msg.Msg
 	closerch chan bool
-	writech  chan *msg.Msg
-	closewch chan bool
 }
 
 func NewConn(c net.Conn, a *account.Acc) (newConn *Conn) {
@@ -24,8 +23,6 @@ func NewConn(c net.Conn, a *account.Acc) (newConn *Conn) {
 		acc:      a,
 		readch:   make(chan *msg.Msg, 50),
 		closerch: make(chan bool, 1),
-		writech:  make(chan *msg.Msg, 50),
-		closewch: make(chan bool, 1),
 	}
 
 	return newConn
@@ -43,10 +40,6 @@ func (this *Conn) GetRCH() chan *msg.Msg {
 	return this.readch
 }
 
-func (this *Conn) GetWCH() chan *msg.Msg {
-	return this.writech
-}
-
 func (this *Conn) Close(accId uint32) {
 	defer this.conn.Close()
 
@@ -55,24 +48,24 @@ func (this *Conn) Close(accId uint32) {
 
 //message read routine
 func (this *Conn) AcceptMsg() {
-	defer this.Close(this.GetAcc().GetAccId())
+	acc := this.GetAcc()
+	defer this.Close(acc.GetAccId())
 
 	for {
 		select {
 		case <-this.closerch: //heartbeat ? write error ?
 			//notify SelectMsg routine
-			this.closewch <- true
+			acc.GetCloseWCH() <- true
 			return
 		default:
 			_msg, err := msg.HandleRecv(this.conn)
-			fmt.Printf("%v\n", err)
+			//fmt.Printf("%v\n", err)
 			if err != nil { //close connect
-				acc := this.GetAcc()
 				logMgr.PushLogicLog(glog.Lerror, fmt.Sprintf("%d: AcceptMsg() error", acc.GetAccId()))
 				acc.Reset()
 
 				//notify SelectMsg routine
-				this.closewch <- true
+				acc.GetCloseWCH() <- true
 
 				return
 			} else if _msg != nil {
@@ -84,16 +77,20 @@ func (this *Conn) AcceptMsg() {
 
 //message handling routine
 func (this *Conn) SelectMsg(ch chan *msg.ServMsg) {
-	defer this.Close(this.GetAcc().GetAccId())
+	acc := this.GetAcc()
+	defer this.Close(acc.GetAccId())
+	saveAcc := time.Tick(1e9 * 60 * 2)
 
 	for {
 		select {
 		case _msg := <-this.GetRCH(): //push msg to main message loop
 			servMsg := &msg.ServMsg{this.GetAcc(), _msg}
 			ch <- servMsg
-		case _msg := <-this.GetWCH(): //send out
-			msg.HandleSend(this.conn, _msg)
-		case <-this.closewch:
+		case _msg := <-acc.GetWCH(): //send out
+			msg.HandleSend(this.conn, _msg.(*msg.Msg))
+		case <-saveAcc:
+			account.SaveAcc(acc)
+		case <-acc.GetCloseWCH():
 			return
 		}
 	}

@@ -3,12 +3,14 @@ package logMgr
 import (
 	"config"
 	"glog"
+	"log"
 )
 
-var logic = glog.NewLogger(config.Logic_logname, config.Loglv)
-var db = glog.NewLogger(config.Db_logname, config.Loglv)
+var logic = glog.NewLogger(config.Llogname, config.Loglv)
+var db = glog.NewLogger(config.LDblogname, config.Loglv)
 
 func InitServLog() {
+	log.SetFlags(log.Flags() | log.Lshortfile)
 	go HandleLogs()
 }
 
@@ -26,10 +28,16 @@ func HandleLogs() {
 }
 
 func PushLogicLog(lv int, str string) {
+	if config.PrintLog {
+		log.Println(str)
+	}
 	logic.PushLog(lv, str)
 }
 
 func PushDbLog(lv int, str string) {
+	if config.PrintLog {
+		log.Println(str)
+	}
 	db.PushLog(lv, str)
 }
 

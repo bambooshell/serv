@@ -7,4 +7,5 @@ const (
 	S2C_CREATE_ACC = OPCODE(2)
 	C2S_LOGIN      = OPCODE(3)
 	S2C_LOGIN      = OPCODE(4)
+	S2C_ACC_INFO   = OPCODE(5)
 )

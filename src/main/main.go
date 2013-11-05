@@ -36,8 +36,14 @@ func main() {
 	// start log routine
 	logMgr.InitServLog()
 	//logMgr.TestWriteLog()
+
+	//database initialization stuff
+	account.InitDBConnect()
+	account.StartDB()
+
 	// register functions of creating message protocol
 	protoes.RegisterProtoFuncs()
+
 	// register message handlers
 	msg.InitMsgHandler()
 

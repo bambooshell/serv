@@ -105,12 +105,24 @@ func HandleSend(cc net.Conn, _msg *Msg) (int, error) {
 	return l, err
 }
 
+//belongs to main loop message routine
 func HandleMsg(acc *account.Acc, _msg *Msg) int {
 	defer func() {
 		if err := recover(); err != nil {
-			logMgr.PushLogicLog(glog.Lerror, fmt.Sprintf("message:%d %s error,from acc:%d", _msg.Op, _msg.Pb, acc.GetAccId()))
+			logMgr.PushLogicLog(glog.Lerror, fmt.Sprintf("HandleMsg:%d %s error,from acc:%d", _msg.Op, _msg.Pb, acc.GetAccId()))
 		}
 	}()
+
+	//login account must has accId
+	if protoes.C2S_CREATE_ACC == _msg.Op || protoes.C2S_LOGIN == _msg.Op {
+		if acc.GetAccId() != 0 {
+			acc.GetCloseWCH() <- true
+		}
+	} else {
+		if acc.GetAccId() <= 0 {
+			acc.GetCloseWCH() <- true
+		}
+	}
 
 	f := msgHandler[_msg.Op]
 	if f != nil {

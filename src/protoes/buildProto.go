@@ -10,6 +10,7 @@ func RegisterProtoFuncs() {
 	opfuncs[S2C_CREATE_ACC] = func() proto.Message { return &CreateAccRet{} }
 	opfuncs[C2S_LOGIN] = func() proto.Message { return &AccLogin{} }
 	opfuncs[S2C_LOGIN] = func() proto.Message { return &AccLoginRet{} }
+	opfuncs[S2C_ACC_INFO] = func() proto.Message { return &AccLoinInfo{} }
 }
 
 func (op OPCODE) CreateProto() proto.Message {
