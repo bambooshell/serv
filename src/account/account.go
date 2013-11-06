@@ -34,7 +34,9 @@ var maxAccIdLock sync.Mutex
 
 //for initialization
 func SetMaxAccId(mid uint32) {
-	maxAccId = mid
+	if mid > maxAccId {
+		maxAccId = mid
+	}
 }
 
 //for create unique accId
