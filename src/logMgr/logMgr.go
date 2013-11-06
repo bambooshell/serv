@@ -2,15 +2,16 @@ package logMgr
 
 import (
 	"config"
+	"fmt"
 	"glog"
 	"log"
+	"runtime"
 )
 
 var logic = glog.NewLogger(config.Llogname, config.Loglv)
 var db = glog.NewLogger(config.LDblogname, config.Loglv)
 
 func InitServLog() {
-	log.SetFlags(log.Flags() | log.Lshortfile)
 	go HandleLogs()
 }
 
@@ -28,17 +29,54 @@ func HandleLogs() {
 }
 
 func PushLogicLog(lv int, str string) {
-	if config.PrintLog {
-		log.Println(str)
+	if lv >= glog.Ldebug && lv <= glog.Lfatal && lv >= logic.GetLogLv() {
+		_, file, line, ok := runtime.Caller(2)
+		if !ok {
+			file = "???"
+			line = 0
+		} else {
+			short := file
+			for i := len(file) - 1; i > 0; i-- {
+				if file[i] == '/' {
+					short = file[i+1:]
+					break
+				}
+			}
+			file = short
+		}
+		newStr := fmt.Sprintf(" %s:%d: %s %s", file, line, glog.Levels[lv], str)
+		if config.PrintLog {
+			log.Println(newStr)
+		}
+
+		logic.PushLog(newStr)
 	}
-	logic.PushLog(lv, str)
 }
 
 func PushDbLog(lv int, str string) {
-	if config.PrintLog {
-		log.Println(str)
+	if lv >= glog.Ldebug && lv <= glog.Lfatal && lv >= db.GetLogLv() {
+		_, file, line, ok := runtime.Caller(2)
+		if !ok {
+			file = "???"
+			line = 0
+		} else {
+			short := file
+			for i := len(file) - 1; i > 0; i-- {
+				if file[i] == '/' {
+					short = file[i+1:]
+					break
+				}
+			}
+			file = short
+		}
+
+		newStr := fmt.Sprintf(" %s:%d: %s %s", file, line, glog.Levels[lv], str)
+		if config.PrintLog {
+			log.Println(newStr)
+		}
+
+		db.PushLog(newStr)
 	}
-	db.PushLog(lv, str)
 }
 
 func TestWriteLog() {

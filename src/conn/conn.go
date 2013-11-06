@@ -40,16 +40,17 @@ func (this *Conn) GetRCH() chan *msg.Msg {
 	return this.readch
 }
 
-func (this *Conn) Close(accId uint32) {
+func (this *Conn) Close() {
 	defer this.conn.Close()
 
-	logMgr.PushLogicLog(glog.Linfo, fmt.Sprintf("acc:%d connection closed", accId))
+	logMgr.PushLogicLog(glog.Linfo, fmt.Sprintf("acc:%d connection closed", this.acc.GetAccId()))
+	this.acc.Reset()
 }
 
 //message read routine
 func (this *Conn) AcceptMsg() {
 	acc := this.GetAcc()
-	defer this.Close(acc.GetAccId())
+	defer this.Close()
 
 	for {
 		select {
@@ -61,9 +62,7 @@ func (this *Conn) AcceptMsg() {
 			_msg, err := msg.HandleRecv(this.conn)
 			//fmt.Printf("%v\n", err)
 			if err != nil { //close connect
-				logMgr.PushLogicLog(glog.Lerror, fmt.Sprintf("%d: AcceptMsg() error", acc.GetAccId()))
-				acc.Reset()
-
+				logMgr.PushLogicLog(glog.Lerror, fmt.Sprintf("%d: AcceptMsg() exit", acc.GetAccId()))
 				//notify SelectMsg routine
 				acc.GetCloseWCH() <- true
 
@@ -78,7 +77,8 @@ func (this *Conn) AcceptMsg() {
 //message handling routine
 func (this *Conn) SelectMsg(ch chan *msg.ServMsg) {
 	acc := this.GetAcc()
-	defer this.Close(acc.GetAccId())
+	defer this.Close()
+
 	saveAcc := time.Tick(1e9 * 60 * 2)
 
 	for {
@@ -91,6 +91,7 @@ func (this *Conn) SelectMsg(ch chan *msg.ServMsg) {
 		case <-saveAcc:
 			account.SaveAcc(acc)
 		case <-acc.GetCloseWCH():
+			logMgr.PushLogicLog(glog.Lerror, fmt.Sprintf("%d: SelectMsg() exit", acc.GetAccId()))
 			return
 		}
 	}

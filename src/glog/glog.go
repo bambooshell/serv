@@ -1,7 +1,6 @@
 package glog
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"time"
@@ -17,7 +16,7 @@ const (
 	Lfatal
 )
 
-var levels = []string{
+var Levels = []string{
 	"[DEBUG]",
 	"[INFO]",
 	"[WARN]",
@@ -55,7 +54,7 @@ func createFL(fname string) (*os.File, *log.Logger) {
 		log.Fatalf("failed to create logfile: %s", fname)
 		return nil, nil
 	}
-	l := log.New(f, "", log.LstdFlags|log.Lshortfile)
+	l := log.New(f, "", log.LstdFlags)
 
 	return f, l
 }
@@ -97,16 +96,18 @@ func (l *Logger) PrintLog(str string) {
 }
 
 //push logs into ch
-func (l *Logger) PushLog(lv int, str string) {
-	if lv >= Ldebug && lv <= Lfatal && lv >= l.loglv {
-		newstr := fmt.Sprintf("%s %s", levels[lv], str)
-		l.ch <- newstr
-	}
+func (l *Logger) PushLog(str string) {
+	l.ch <- str
 }
 
 //Get Logger.ch
 func (l *Logger) CH() chan string {
 	return l.ch
+}
+
+//get logger lv
+func (l *Logger) GetLogLv() int {
+	return l.loglv
 }
 
 //create a new log.Logger,close formal file handler first
