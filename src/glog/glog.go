@@ -26,32 +26,32 @@ var Levels = []string{
 }
 
 type Logger struct {
-	ch     chan string
-	fname  string
-	logger *log.Logger
-	fd     *os.File
-	fsize  int
-	loglv  int
+	ch      chan string
+	fname   string
+	logger  *log.Logger
+	fhanler *os.File
+	fsize   int
+	loglv   int32
 }
 
-//if a log file size beyond 10M,create a new one
+//max log file size(bytes)
 const (
-	MAX_LOGFILE_SIZE = 10 * 1024 * 1024
+	MAX_LOGFILE_SIZE = 5 * 1024 * 1024
 )
 
 //replace log.Logger and file handler
 func (l *Logger) resetLogger(f *os.File, ll *log.Logger) {
 	l.logger = ll
-	l.fd = f
+	l.fhanler = f
 	l.fsize = 0
 }
 
-//create a log file,return the file handler and assign this file handler to a new log.Logger
-//return file handler and log.Logger
+//create a log file and log.Logger
 func createFL(fname string) (*os.File, *log.Logger) {
-	f, err := os.OpenFile(fname, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	path := "logs/" + fname
+	f, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 	if err != nil {
-		log.Fatalf("failed to create logfile: %s", fname)
+		log.Fatalf("failed to create logfile: %s: %s", fname, err.Error())
 		return nil, nil
 	}
 	l := log.New(f, "", log.LstdFlags)
@@ -60,25 +60,24 @@ func createFL(fname string) (*os.File, *log.Logger) {
 }
 
 //create glog.Logger, a proxy of log.Logger
-//a glog.Logger contains a log file
-//when log file size exceeds MAX_LOGFILE_SIZE,close the log file handler and
-//create a new log.Logger with a new log file
-func NewLogger(fname string, lv int) (l *Logger) {
+//when log file size exceeds MAX_LOGFILE_SIZE,close the log file handler,
+//create a new log.Logger and a new log file
+func NewLogger(fname string, lv int32) (l *Logger) {
 	_now := time.Now()
 	tstr := util.Time2Str(&_now)
-	ln := fname + tstr
-	f, ll := createFL(ln)
-	if f == nil || ll == nil {
-		log.Fatalf("failed to create logfile: %s", ln)
+	newName := fname + tstr
+	f, lg := createFL(newName)
+	if f == nil || lg == nil {
+		log.Fatalf("failed to create logfile: %s", newName)
 		return nil
 	}
 
 	l = &Logger{
-		fname:  fname,
-		logger: ll,
-		fd:     f,
-		fsize:  0,
-		loglv:  lv,
+		fname:   fname,
+		logger:  lg,
+		fhanler: f,
+		fsize:   0,
+		loglv:   lv,
 	}
 
 	l.ch = make(chan string, 2048)
@@ -106,22 +105,21 @@ func (l *Logger) CH() chan string {
 }
 
 //get logger lv
-func (l *Logger) GetLogLv() int {
+func (l *Logger) GetLogLv() int32 {
 	return l.loglv
 }
 
-//create a new log.Logger,close formal file handler first
+//close old file handler,create a new log.Logger
 func (l *Logger) createNewLogger() {
 	_now := time.Now()
 	tstr := util.Time2Str(&_now)
 
-	l.fd.Close()
+	l.fhanler.Close()
 
 	fname := l.fname + tstr
-	f, ll := createFL(fname)
-	if f == nil || ll == nil {
-		log.Fatalf("failed to create logfile: %s", fname)
+	f, lg := createFL(fname)
+	if f == nil || lg == nil {
 		return
 	}
-	l.resetLogger(f, ll)
+	l.resetLogger(f, lg)
 }

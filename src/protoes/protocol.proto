@@ -6,7 +6,7 @@ message createAcc {
 }
 
 message createAccRet {
-	required int32	ok = 1;
+	required uint32	ok = 1;
 }
 
 message accLogin {

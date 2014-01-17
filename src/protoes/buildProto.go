@@ -5,7 +5,7 @@ import proto "code.google.com/p/goprotobuf/proto"
 var opfuncs = make(map[OPCODE]func() proto.Message)
 
 //every opcode has a message prototype
-func RegisterProtoFuncs() {
+func RegProtoFunc() {
 	opfuncs[C2S_CREATE_ACC] = func() proto.Message { return &CreateAcc{} }
 	opfuncs[S2C_CREATE_ACC] = func() proto.Message { return &CreateAccRet{} }
 	opfuncs[C2S_LOGIN] = func() proto.Message { return &AccLogin{} }

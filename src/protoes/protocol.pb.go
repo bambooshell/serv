@@ -38,15 +38,15 @@ func (m *CreateAcc) GetRoleName() string {
 }
 
 type CreateAccRet struct {
-	Ok               *int32 `protobuf:"varint,1,req,name=ok" json:"ok,omitempty"`
-	XXX_unrecognized []byte `json:"-"`
+	Ok               *uint32 `protobuf:"varint,1,req,name=ok" json:"ok,omitempty"`
+	XXX_unrecognized []byte  `json:"-"`
 }
 
 func (m *CreateAccRet) Reset()         { *m = CreateAccRet{} }
 func (m *CreateAccRet) String() string { return proto.CompactTextString(m) }
 func (*CreateAccRet) ProtoMessage()    {}
 
-func (m *CreateAccRet) GetOk() int32 {
+func (m *CreateAccRet) GetOk() uint32 {
 	if m != nil && m.Ok != nil {
 		return *m.Ok
 	}
